@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login-Admin Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <!-- style start from here    -->
+    <style>
+        body {
+            background-image: url("{{ url_for('static', filename='background.webp') }}");
+        }
+        .login-container {
+            max-width: 1500px;
+            margin: 80px auto;
+            padding: 80px;
+            background-color: rgba(243, 162, 162, 0.955);
+            box-shadow: 0 8px 100px rgba(117, 204, 10, 0.1);
+            border-radius: 100px;
+        }
+        .login-header {
+            margin-bottom: 20px;
+        }
+        .login-header h2 {
+            margin: 0;
+            font-size: 55px;
+            border-bottom: 2px solid #02020b;
+            text-shadow: 0px 0px 10px #f10c0c;
+            color: #02020b;
+        }
+        .section {
+            margin: 20px 0;
+            font-style: italic;
+            background-color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0px 0px 10px #a4aaac;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h2>A-Z Household Services</h2>
+        </div>
+    <!-- navbar extention here    -->
+    {% include 'navbar.html' %}
+    <div class="container">
+        <div class="row mt-4">   
+            <!--  for approving pending professionals  -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Request By Professionals
+                    </div>
+                    <div class="card-body">
+                        <p>Can Accept And Reject Requests By Admin </p>
+                        <!-- Modal -->
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#viewRequestsModal">
+                            View Requests
+                        <span class="badge bg-secondary">{{ pending_professionals|length }}</span>
+                        </button>
+
+                        <!-- Modal for viewing requests -->
+                        <div class="modal fade" id="viewRequestsModal" tabindex="-1" aria-labelledby="viewRequestsModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="viewRequestsModalLabel">Professional Requests</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Service Type</th>
+                                                    <th>Contact</th>
+                                                    <th>Pincode</th>
+                                                    <th>Experience</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for professional in pending_professionals %}
+                                                <tr>
+                                                    <td>{{ professional.full_name }}</td>
+                                                    <td>{{ professional.serviceType }}</td>
+                                                    <td>{{ professional.contact }}</td>
+                                                    <td>{{ professional.pincode }}</td>
+                                                    <td>{{ professional.Experience }}</td>
+                                                    <td>
+                                                        <form action="{{ url_for('approve_professional', id=professional.id) }}" method="POST" style="display: inline;">
+                                                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                                        </form>
+                                                        <form action="{{ url_for('disapprove_professional', id=professional.id) }}" method="POST" style="display: inline;">
+                                                            <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+            </div>
+            <!--  for creating service  -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Create Services
+                    </div>
+                    <div class="card-body">
+                        <p>Create New services </p>
+                        <!-- Button trigger modal -->
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createServiceModal">
+                            Create Service
+                        </button>
+
+                        <!-- modal form to accept services -->
+                        <div class="modal fade" id="createServiceModal" tabindex="-1" aria-labelledby="createServiceModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="createServiceModalLabel">Create Service</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form action="/admin/create_service" method="POST">
+                                            <div class="mb-3">
+                                                <label for="serviceName" class="form-label">Service Name</label>
+                                                <input type="text" class="form-control" id="serviceName" name="name" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="serviceDescription" class="form-label">Description</label>
+                                                <textarea class="form-control" id="serviceDescription" name="description" rows="3" required></textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="servicePrice" class="form-label">Price</label>
+                                                <input type="number" class="form-control" id="servicePrice" name="price" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="serviceTimeRequired" class="form-label">Time Required (in hours)</label>
+                                                <input type="number" class="form-control" id="serviceTimeRequired" name="time_required" required>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Save</button>
+                                        </form>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!--  for viewing available services  -->
+        <div class="section">
+            <h2>Available Services</h2>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Price</th>
+                        <th>Time Required</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for service in services %}
+                    <tr>
+                        <td>{{ service.name }}</td>
+                        <td>{{ service.description }}</td>
+                        <td>{{ service.price }}</td>
+                        <td>{{ service.time_required }}</td>
+                        <td>{{ service.status }}</td>
+                        <td>
+                            <!-- Button trigger modal for editing service -->
+
+                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editServiceModal{{ service.id }}">
+                                Edit
+                            </button>
+
+                            <form action="/admin/toggle_service_status/{{ service.id }}" method="POST" style="display: inline;">
+                                {% if service.status == 'active' %}
+                                    <button type="submit" class="btn btn-danger btn-sm">Deactivate</button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-success btn-sm">Activate</button>
+                                {% endif %}
+                            </form>
+                            <!-- Modal for editing service -->
+                            <div class="modal fade" id="editServiceModal{{ service.id }}" tabindex="-1" aria-labelledby="editServiceModalLabel{{ service.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editServiceModalLabel{{ service.id }}">Edit Service</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form action="/admin/edit_service/{{ service.id }}" method="POST">
+                                                <div class="mb-3">
+                                                    <label for="editServiceName{{ service.id }}" class="form-label">Service Name</label>
+                                                    <input type="text" class="form-control" id="editServiceName{{ service.id }}" name="name" value="{{ service.name }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editServiceDescription{{ service.id }}" class="form-label">Description</label>
+                                                    <textarea class="form-control" id="editServiceDescription{{ service.id }}" name="description" rows="3" required>{{ service.description }}</textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editServicePrice{{ service.id }}" class="form-label">Price</label>
+                                                    <input type="number" class="form-control" id="editServicePrice{{ service.id }}" name="price" value="{{ service.price }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="editServiceTimeRequired{{ service.id }}" class="form-label">Time Required (in minutes)</label>
+                                                    <input type="number" class="form-control" id="editServiceTimeRequired{{ service.id }}" name="time_required" value="{{ service.time_required }}" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Save</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                             
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div> 
+        <!-- for viewing approved professionals -->
+        <div class="section">
+            <h2> Professionals who are Active</h2>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Service Type</th>
+                        <th>Phone</th>
+                        <th>Pincode</th>
+                        <th>Address</th>
+                        <th>Experience</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for professional in active_professionals %}
+                    <tr>
+                        <td>{{ professional.full_name }}</td>
+                        <td>{{ professional.serviceType }}</td>
+                        <td>{{ professional.contact }}</td>
+                        <td>{{ professional.pincode }}</td>
+                        <td>{{ professional.service_provided }}</td>
+                        <td>{{ professional.Experience }}</td>
+                        <td>
+                            <form action="/admin/toggle_professional_status/{{ professional.id }}" method="POST" style="display: inline;">
+                                {% if professional.status == 'blocked' %}
+                                    <button type="submit" class="btn btn-success btn-sm">Unblock</button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-danger btn-sm">Block</button>
+                                {% endif %}
+                            </form>
+                            <form action="/admin/delete_professional/{{ professional.id }}" method="POST" style="display: inline;">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>                                
+                        </td>      
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- users who are reggistered will shown here   -->
+        <div class="section">
+            <h2>All Registered Users</h2>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Pincode</th>
+                        <th>Contact</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in customers %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.address }}</td>
+                        <td>{{ user.pincode }}</td>
+                        <td>{{ user.contact }}</td>
+                        <td>
+                            <form action="/admin/toggle_customer_status/{{ user.id }}" method="POST" style="display: inline;">
+                                {% if user.status == 'blocked' %}
+                                    <button type="submit" class="btn btn-success btn-sm">Unblock</button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-danger btn-sm">Block</button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>    
+        
+        <!-- for viewing service requests -->
+        <div class="section">
+            <h3>Service Requests</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Service Name</th>
+                        <th>Customer</th>
+                        <th>Professional</th>
+                        <th>Date of Request</th>
+                        <th>Review</th>
+                        <th>Rating</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in service_requests %}
+                    <tr>
+                        <td>{{ request.service.name }}</td>
+                        <td>{{ request.customer.username }}</td>
+                        <td>{{ request.professional.full_name if request.professional else 'N/A' }}</td>
+                        <td>{{ request.date_of_request }}</td>
+                        <td>{{ request.review }}</td>
+                        <td>{{ request.rating }}/5</td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" disabled>{{ request.status }}</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!-- Search Modal implementations  -->
+        <div class="modal fade {% if show_modal %}show{% endif %}" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true" {% if show_modal %} style="display: block;"{% endif %}>
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="searchModalLabel">Search </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="/admin_dashboard" method="POST">
+                            <div class="mb-3">
+                                <label for="searchOption" class="form-label">Search By</label>
+                                <select class="form-select" id="searchOption" name="search_option" required>
+                                    <option value="">Select an option</option>
+                                    <option value="professional">Professional</option>
+                                    <option value="user">User</option>
+                                    <option value="service_requests">Service Requests</option>
+                                    <option value="accepted_requests">Accepted Requests</option>
+                                    <option value="closed_requests">Closed Requests</option>
+                                    <option value="rejected_requests">Rejected Requests</option>
+                                    <option value="services">Services</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="searchQuery" class="form-label">Search Query</label>
+                                <input type="text" class="form-control" id="searchQuery" name="search_query" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Search Data</button>
+                        </form>
+                    </div>
+                    <div class="modal-body" id="searchResults">
+                        {% if search_option and search_option != '' %}
+                            <!-- search query for professionals    -->
+                            {% if search_option == 'professional' %}
+                                <h3>Professionals</h3>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Full Name</th>
+                                            <th>Service Provided</th>
+                                            <th>Pincode</th>
+                                            <th>Contact</th>
+                                            <th>Experience</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for professional in search_results %}
+                                        <tr>
+                                            <td>{{ professional.full_name }}</td>
+                                            <td>{{ professional.service_provided }}</td>
+                                            <td>{{ professional.pincode }}</td>
+                                            <td>{{ professional.contact }}</td>
+                                            <td>{{ professional.Experience }}</td>
+                                            <td>{{ professional.status }}</td>
+                                            <td>
+                                                <form action="/admin/toggle_professional_status/{{ professional.id }}" method="POST" style="display: inline;">
+                                                    {% if professional.status == 'blocked' %}
+                                                        <button type="submit" class="btn btn-success btn-sm">Unblock</button>
+                                                    {% else %}
+                                                        <button type="submit" class="btn btn-danger btn-sm">Block</button>
+                                                    {% endif %}
+                                                </form>
+                                                <form action="/admin/delete_professional/{{ professional.id }}" method="POST" style="display: inline;">
+                                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                                </form>                                
+                                            </td>     
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            <!-- search query for users    -->
+                            {% elif search_option == 'user' %}
+                                <h3>Users</h3>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Address</th>
+                                            <th>Pincode</th>
+                                            <th>Contact</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in search_results %}
+                                        <tr>
+                                            <td>{{ user.username }}</td>
+                                            <td>{{ user.address }}</td>
+                                            <td>{{ user.pincode }}</td>
+                                            <td>{{ user.contact }}</td>
+                                            <td>{{ user.status }}</td>
+                                            <td>
+                                                <form action="/admin/toggle_customer_status/{{ user.id }}" method="POST" style="display: inline;">
+                                                    {% if user.status == 'blocked' %}
+                                                        <button type="submit" class="btn btn-success btn-sm">Unblock</button>
+                                                    {% else %}
+                                                        <button type="submit" class="btn btn-danger btn-sm">Block</button>
+                                                    {% endif %}
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            <!-- search query for service requests    -->
+                            {% elif search_option == 'service_requests' %}
+                                <h3>Service Requests</h3>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Service Name</th>
+                                            <th>Customer</th>
+                                            <th>Professional</th>
+                                            <th>Date of Request</th>
+                                            <th>Status</th>
+                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for request in search_results %}
+                                        <tr>
+                                            <td>{{ request.service.name }}</td>
+                                            <td>{{ request.customer.username }}</td>
+                                            <td>{{ request.professional.full_name if request.professional else 'N/A' }}</td>
+                                            <td>{{ request.date_of_request }}</td>
+                                            <td>
+                                                <button class="btn btn-secondary btn-sm" disabled>{{ request.status }}</button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            <!-- search query for accepted requests    -->
+                            {% elif search_option == 'accepted_requests' %}
+                                <h3>Accepted Requests</h3>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Service Name</th>
+                                            <th>Customer</th>
+                                            <th>Professional</th>
+                                            <th>Date of Request</th>
+                                            <th>Status</th>
+                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for request in search_results %}
+                                        <tr>
+                                            <td>{{ request.service.name }}</td>
+                                            <td>{{ request.customer.username }}</td>
+                                            <td>{{ request.professional.full_name if request.professional else 'N/A' }}</td>
+                                            <td>{{ request.date_of_request }}</td>
+                                            <td>
+                                                <button class="btn btn-secondary btn-sm" disabled>{{ request.status }}</button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            <!-- search query for closed requests    -->
+                            {% elif search_option == 'closed_requests' %}
+                                <h3>Closed Requests</h3>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Service Name</th>
+                                            <th>Customer</th>
+                                            <th>Professional</th>
+                                            <th>Date of Request</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for request in search_results %}
+                                        <tr>
+                                            <td>{{ request.service.name }}</td>
+                                            <td>{{ request.customer.username }}</td>
+                                            <td>{{ request.professional.full_name if request.professional else 'N/A' }}</td>
+                                            <td>{{ request.date_of_request }}</td>
+                                            <td>
+                                                <button class="btn btn-secondary btn-sm" disabled>{{ request.status }}</button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            <!-- search query for rejected requests    -->
+                            {% elif search_option == 'rejected_requests' %}
+                                <h3>Rejected Requests</h3>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Service Name</th>
+                                            <th>Customer</th>
+                                            <th>Professional</th>
+                                            <th>Date of Request</th>
+                                            <th>Status</th>
+
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for request in search_results %}
+                                        <tr>
+                                            <td>{{ request.service.name }}</td>
+                                            <td>{{ request.customer.username }}</td>
+                                            <td>{{ request.professional.full_name if request.professional else 'N/A' }}</td>
+                                            <td>{{ request.date_of_request }}</td>
+                                            <td>
+                                                <button class="btn btn-secondary btn-sm" disabled>{{ request.status }}</button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            <!-- search query for services    -->
+                            {% elif search_option == 'services' %}
+                                <h3>Services</h3>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Description</th>
+                                            <th>Price</th>
+                                            <th>Time Required</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for service in search_results %}
+                                        <tr>
+                                            <td>{{ service.name }}</td>
+                                            <td>{{ service.description }}</td>
+                                            <td>{{ service.price }}</td>
+                                            <td>{{ service.time_required }}</td>
+                                            <td>{{ service.status }}</td>
+                                            <td>
+                                                <!-- Button trigger modal for editing service -->
+
+                                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editServiceModal{{ service.id }}">
+                                                    Edit
+                                                </button>
+
+                                                <form action="/admin/toggle_service_status/{{ service.id }}" method="POST" style="display: inline;">
+                                                    {% if service.status == 'active' %}
+                                                        <button type="submit" class="btn btn-danger btn-sm">Deactivate</button>
+                                                    {% else %}
+                                                        <button type="submit" class="btn btn-success btn-sm">Activate</button>
+                                                    {% endif %}
+                                                </form>
+                                                <!-- Modal for editing service -->
+                                                <div class="modal fade" id="editServiceModal{{ service.id }}" tabindex="-1" aria-labelledby="editServiceModalLabel{{ service.id }}" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="editServiceModalLabel{{ service.id }}">Edit Service</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <form action="/admin/edit_service/{{ service.id }}" method="POST">
+                                                                    <div class="mb-3">
+                                                                        <label for="editServiceName{{ service.id }}" class="form-label">Service Name</label>
+                                                                        <input type="text" class="form-control" id="editServiceName{{ service.id }}" name="name" value="{{ service.name }}" required>
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label for="editServiceDescription{{ service.id }}" class="form-label">Description</label>
+                                                                        <textarea class="form-control" id="editServiceDescription{{ service.id }}" name="description" rows="3" required>{{ service.description }}</textarea>
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label for="editServicePrice{{ service.id }}" class="form-label">Price</label>
+                                                                        <input type="number" class="form-control" id="editServicePrice{{ service.id }}" name="price" value="{{ service.price }}" required>
+                                                                    </div>
+                                                                    <div class="mb-3">
+                                                                        <label for="editServiceTimeRequired{{ service.id }}" class="form-label">Time Required (in minutes)</label>
+                                                                        <input type="number" class="form-control" id="editServiceTimeRequired{{ service.id }}" name="time_required" value="{{ service.time_required }}" required>
+                                                                    </div>
+                                                                    <button type="submit" class="btn btn-primary">Save</button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.min.js"></script>
+    <!--used javascript bcoz modal shouldnot closing and refreshing -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var showModal = {{ show_modal|tojson }};
+            if (showModal) {
+                var searchModal = new bootstrap.Modal(document.getElementById('searchModal'));
+                searchModal.show();
+            }
+
+            var searchModalElement = document.getElementById('searchModal');
+            searchModalElement.addEventListener('hidden.bs.modal', function () {
+                document.getElementById('searchResults').innerHTML = '';
+            });
+        });
+        
+    </script>
+
+</body>
+</html>

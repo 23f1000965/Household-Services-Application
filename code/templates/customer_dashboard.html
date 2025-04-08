@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <!-- style start from here    -->
+    <style>
+        body {
+            background-image: url("{{ url_for('static', filename='background.webp') }}");
+        }
+        .login-container {
+            max-width: 1500px;
+            margin: 80px auto;
+            padding: 80px;
+            background-color: rgba(243, 162, 162, 0.955);
+            box-shadow: 0 8px 100px rgba(117, 204, 10, 0.1);
+            border-radius: 100px;
+        }
+
+        .login-header {
+            margin-bottom: 20px;
+        }
+
+        .login-header h2 {
+            margin: 0;
+            font-size: 55px;
+            border-bottom: 2px solid #02020b;
+            text-shadow: 0px 0px 10px #f10c0c;
+            color: #02020b;
+        }
+
+        .card {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: scale(1.03);
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 20px;
+            }
+
+            .login-header h2 {
+                font-size: 30px;
+            }
+        }
+
+        .section {
+            text-decoration: underline;
+            text-align: center;
+            font-style: italic;
+            background-color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0px 0px 10px #3b9ddf;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-container">
+            <div class="login-header">
+                <h2>A-Z Household Services</h2>
+            </div>
+            <!-- navbar extention here    -->
+            {% include 'navbar.html' %}
+
+            <!-- Profile Modal for customer-->
+            <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="profileModalLabel">Profile</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>Name:</strong> {{ customer.username }}</p>
+                            <p><strong>Address:</strong> {{ customer.address }}</p>
+                            <p><strong>Contact:</strong> {{ customer.contact }}</p>
+                            <p><strong>Pincode:</strong> {{ customer.pincode }}</p>
+                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#editProfileModal" data-bs-dismiss="modal">
+                                Edit
+                            </button>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Edit Profile Modal -->
+            <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="/customer/edit_customer_profile" method="POST">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="username" name="username" value="{{ customer.username }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Address</label>
+                                    <input type="text" class="form-control" id="address" name="address" value="{{ customer.address }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="contact" class="form-label">Contact</label>
+                                    <input type="text" class="form-control" id="contact" name="contact" value="{{ customer.contact }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="pincode" class="form-label">Pincode</label>
+                                    <input type="text" class="form-control" id="pincode" name="pincode" value="{{ customer.pincode }}" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Services Looking For__</h3>
+            </div>
+            <!-- service with professionals start from here -->
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+                {% for service in services_with_professionals %}
+                    <div class="col">
+                        <div class="card h-70">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ service.service.name }}</h5>
+                                <p class="card-text">{{ service.service.description }}</p>
+                                <p><strong>Price:</strong> Rs.{{ service.service.price }}</p>
+                                <p><strong>Time Required:</strong> {{ service.service.time_required }} hrs</p>
+                                {% if service.service.status == 'active' %}                            
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#serviceModal{{ service.service.id }}">
+                                        View Details & Book
+                                    <span class="badge bg-secondary">{{ service.professionals | selectattr('status', 'equalto', 'approved') | list | length }}</span>
+                                    </button>
+                                {% else %}
+                                    <button type="button" class="btn btn-secondary" disabled>Inactive</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--service with professional Modal -->
+                    <div class="modal fade" id="serviceModal{{ service.service.id }}" tabindex="-1" aria-labelledby="serviceModalLabel{{ service.service.id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="serviceModalLabel{{ service.service.id }}">{{ service.service.name }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+
+                                    <h5>Available Professionals</h5>
+                                    <ul>
+                                        {% if service.professionals %}
+                                            {% set approved_professionals = service.professionals | selectattr('status', 'equalto', 'approved') | list %}
+                                            {% if approved_professionals %}
+                                                {% for professional in approved_professionals %}
+                                                    <li>
+                                                        <p><strong>Name:</strong> {{ professional.full_name }}</p>
+                                                        <p><strong>Contact:</strong> {{ professional.contact }}</p>
+                                                        <p><strong>Pincode:</strong> {{ professional.pincode }}</p>
+                                                        <p><strong>Experience:</strong> {{ professional.Experience }} years</p>
+                                                        {% if service.service.id | exists_request(professional.id, service_requests_with_professionals) %}
+                                                            <button type="button" class="btn btn-secondary" disabled>Requested</button>
+                                                        {% else %}
+                                                            <form action="/customer/request_service" method="POST">
+                                                                <input type="hidden" name="service_id" value="{{ service.service.id }}">
+                                                                <input type="hidden" name="professional_id" value="{{ professional.id }}">
+                                                                <button type="submit" class="btn btn-success">Book Service With {{ professional.full_name }}</button>
+                                                            </form>
+                                                        {% endif %}
+                                                    </li>
+                                                {% endfor %}
+                                            {% else %}
+                                                <p>No Professionals Available</p>
+                                            {% endif %}
+                                        {% else %}
+                                            <p>No Professionals Available</p>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>  
+                
+            <!-- Search Modal -->
+            <div class="modal fade {% if show_modal %}show{% endif %}" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true" {% if show_modal %}style="display: block;"{% endif %}>
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="searchModalLabel">Search Results</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="/customer" method="POST">
+                                <div class="mb-3">
+                                    <label for="searchOption" class="form-label">Search By</label>
+                                    <select class="form-select" id="searchOption" name="search_option" required>
+                                        <option value="">Select an option</option>
+                                        <option value="services">Services</option>
+                                        <option value="professional_fullname">Professional Full Name</option>
+                                        <option value="pincode">Pincode</option>
+                                        <option value="address">Address</option>
+                                        <option value="experience">Experience</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="searchQuery" class="form-label">Search Query</label>
+                                    <input type="text" class="form-control" id="searchQuery" name="search_query" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Search</button>
+                            </form>
+                        </div>
+                        <div class="modal-body" id="searchResults">
+                            {% if search_option and search_option != '' %}
+                            <!-- Search Results for services -->
+                                {% if search_option == 'services' %}
+                                    <h3>Services</h3>
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Description</th>
+                                                <th>Price</th>
+                                                <th>Time Required</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for service in search_results %}
+                                            <tr>
+                                                <td>{{ service.name }}</td>
+                                                <td>{{ service.description }}</td>
+                                                <td>{{ service.price }}</td>
+                                                <td>{{ service.time_required }}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#serviceModal{{ service.id }}">
+                                                        View Details & Book
+                                                    </button>
+                                                    
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    {% for service in search_results %}
+                                    <!-- Service Modal -->
+                                    <div class="modal fade" id="serviceModal{{ service.id }}" tabindex="-1" aria-labelledby="serviceModalLabel{{ service.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="serviceModalLabel{{ service.id }}">{{ service.name }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>{{ service.description }}</p>
+                                                    <p><strong>Price:</strong> Rs.{{ service.price }}/-</p>
+                                                    <p><strong>Time Required:</strong> {{ service.time_required }} minutes</p>
+                                                    <h5>Available Professionals</h5>
+                                                    <ul>
+                                                        {% for professional in service.professionals %}
+                                                        <li>
+                                                            <p><strong>Name:</strong> {{ professional.full_name }}</p>
+                                                            <p><strong>Contact:</strong> {{ professional.contact }}</p>
+                                                            <p><strong>Pincode:</strong> {{ professional.pincode }}</p>
+                                                            <p><strong>Experience:</strong> {{ professional.Experience }} years</p>
+                                                            <form action="/customer/request_service" method="POST">
+                                                                <input type="hidden" name="service_id" value="{{ service.id }}">
+                                                                <input type="hidden" name="professional_id" value="{{ professional.id }}">
+                                                                <button type="submit" class="btn btn-success">Book Service with {{ professional.full_name }}</button>
+                                                            </form>
+                                                        </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                <!-- Search Results for professionals,pincode,address,experience -->
+                                {% elif search_option == 'professional_fullname' or search_option == 'pincode' or search_option == 'address' or search_option == 'experience' %}
+                                    <h4>Professionals</h4>
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Full Name</th>
+                                                <th>Service Provided</th>
+                                                <th>Pincode</th>
+                                                <th>Contact</th>
+                                                <th>Experience</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for professional in search_results %}
+                                            <tr>
+                                                <td>{{ professional.full_name }}</td>
+                                                <td>{{ professional.service_provided }}</td>
+                                                <td>{{ professional.pincode }}</td>
+                                                <td>{{ professional.contact }}</td>
+                                                <td>{{ professional.Experience }}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#serviceModal{{ professional.service_id }}">
+                                                        View Details & Book
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}    
+                                        </tbody>
+                                    </table>
+                                {% endif %}
+                            {% else %}
+                                <p><strong>No results available</strong></p>
+                            {% endif %}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- service requested shown here  -->
+            <div class="section">
+                <h3>Service Requested to Professionals</h3>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Status</th>
+                            <th>Professional</th>
+                            <th>Contact</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if service_requests_with_professionals %}
+                            {% for item in service_requests_with_professionals %}
+                            <tr>
+                                <td>{{ item.service_request.service.name }}</td>
+                                <td>{{ item.service_request.status }}</td>
+                                <td>{{ item.professional.full_name }}</td>
+                                <td>{{ item.professional.contact }}</td>
+                                
+                                <td>
+                                    {% if item.service_request.status == 'closed' %}
+                                        {% if item.service_request.review %}
+                                            <button type="button" class="btn btn-success" disabled>Reviewed</button>
+                                        {% else %}
+                                            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#reviewModal{{ item.service_request.id }}">
+                                                Review
+                                            </button>
+                                        {% endif %}
+                                    {% else %}
+                                        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#editModal{{ item.service_request.id }}">
+                                            Edit
+                                        </button>
+                                        <form action="/customer/delete_service/{{ item.service_request.id }}" method="POST" style="display: inline;">
+                                            <input type="hidden" name="service_request_id" value="{{ item.service_request.id }}">
+                                            <button type="submit" class="btn btn-danger">Cancel Request</button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                            <!--service requested  Edit Modal -->
+                            <div class="modal fade" id="editModal{{ item.service_request.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ item.service_request.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editModalLabel{{ item.service_request.id }}">Edit Service Request</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form action="/customer/edit_service_request/{{ item.service_request.id }}" method="POST">
+                                                <div class="mb-3">
+                                                    <label for="date_of_request" class="form-label">Date of Request</label>
+                                                    <input type="datetime-local" class="form-control" id="date_of_request" name="date_of_request" value="{{ item.service_request.date_of_request }}" required>
+                                                </div>
+                                                
+                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--review services  Modal -->
+                            <div class="modal fade" id="reviewModal{{ item.service_request.id }}" tabindex="-1" aria-labelledby="reviewModalLabel{{ item.service_request.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="reviewModalLabel{{ item.service_request.id }}">Review Service</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form action="/customer/review_service/{{ item.service_request.id }}" method="POST">
+                                                <div class="mb-3">
+                                                    <label for="rating" class="form-label">Rating</label>
+                                                    <select class="form-select" id="rating" name="rating" required>
+                                                        <option value="1">1</option>
+                                                        <option value="2">2</option>
+                                                        <option value="3">3</option>
+                                                        <option value="4">4</option>
+                                                        <option value="5">5</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="review" class="form-label">Review</label>
+                                                    <textarea class="form-control" id="review" name="review" rows="3" required></textarea>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Submit Review</button>
+                                            </form>
+
+                                            </div>
+                                            <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">No service requests found.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.min.js"></script>
+    <!--used javascript bcoz modal shouldnot closing and refreshing -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var showModal = {{ show_modal|tojson }};
+            if (showModal) {
+                var searchModal = new bootstrap.Modal(document.getElementById('searchModal'));
+                searchModal.show();
+            }
+
+            var searchModalElement = document.getElementById('searchModal');
+            searchModalElement.addEventListener('hidden.bs.modal', function () {
+                document.getElementById('searchResults').innerHTML = '';
+            });
+        });
+    </script>
+</body>
+</html>
